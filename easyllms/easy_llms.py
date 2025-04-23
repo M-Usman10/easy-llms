@@ -13,19 +13,22 @@ PROVIDERS = {
     'ollama': generate_ai_response_ollama,
 }
 
-
-def stream_response(provider_name, model_name, prompt, **kwargs):
+def stream_response(provider_name, model_name, prompt, api_key=None, **kwargs):
     """
     Streams the response from the specified provider using the given model name and prompt.
 
     Args:
-        provider_name (str): Name of the provider ('openai' or 'anthropic').
-        model_name (str): The model identifier (e.g., 'gpt-4' or 'claude-3').
+        provider_name (str): Name of the provider ('openai', 'anthropic', etc.).
+        model_name (str): The model identifier (e.g., 'gpt-4o-mini', 'claude-3').
         prompt (str): The input prompt for the AI.
+        api_key (str, optional): The API key or URL for the provider. If None, the key must be set in a .env file.
         **kwargs: Additional keyword arguments for the provider function.
 
     Yields:
         str: Tokens of the streaming response.
+
+    Raises:
+        ValueError: If the provider is not supported.
     """
     generate_response = PROVIDERS.get(provider_name)
     if not generate_response:
@@ -37,5 +40,5 @@ def stream_response(provider_name, model_name, prompt, **kwargs):
         {"role": "user", "content": prompt}
     ]
 
-    # Call the provider function with model_name and chat_history.
-    yield from generate_response(model_name, chat_history, **kwargs)
+    # Call the provider function with model_name, chat_history, and api_key.
+    yield from generate_response(model_name, chat_history, api_key=api_key, **kwargs)

@@ -1,31 +1,27 @@
-import os
 from openai import OpenAI
-from dotenv import load_dotenv
 
-load_dotenv()
-
-# Initialize client once at module level
-_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-
-
-def generate_ai_response_openai(model_name, chat_history):
+def generate_ai_response_openai(model_name, chat_history, api_key=None):
     """
     Stream response from OpenAI's API
 
     Args:
-        messages: List of dicts with 'role' and 'content'
-        model: Model name (e.g. "gpt-4", "gpt-3.5-turbo")
-        **kwargs: Additional parameters:
-            - temperature (float)
-            - max_tokens (int)
-            - top_p (float)
-            - etc.
+        model_name (str): Model name (e.g., "gpt-4o-mini", "gpt-3.5-turbo").
+        chat_history (list): List of dicts with 'role' and 'content'.
+        api_key (str, optional): OpenAI API key. If None, must be set in environment.
 
     Yields:
         str: Response chunks
+
+    Raises:
+        RuntimeError: If the API key is missing or the API call fails.
     """
+    if not api_key:
+        raise RuntimeError("OpenAI API key is required. Provide it via api_key parameter or set OPENAI_API_KEY in .env.")
+
+    client = OpenAI(api_key=api_key)
+
     try:
-        response = _client.chat.completions.create(
+        response = client.chat.completions.create(
             model=model_name,
             messages=chat_history,
             stream=True,
@@ -38,4 +34,4 @@ def generate_ai_response_openai(model_name, chat_history):
                 yield chunk.choices[0].delta.content
 
     except Exception as e:
-        raise RuntimeError(f"OpenAI API error: {str(e)}")
+        raise RuntimeError(f"OpenAI API error: {str(e)}") from e
